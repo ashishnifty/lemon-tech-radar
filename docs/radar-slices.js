@@ -201,6 +201,20 @@ function radar_visualization(config) {
   // define default font-family
   config.font_family = config.font_family || "Arial, Helvetica";
 
+  // background color. Usage `.attr("filter", "url(#solid)")`
+  // SOURCE: https://stackoverflow.com/a/31013492/2609980
+  var defs = grid.append("defs");
+  var filter = defs.append("filter")
+    .attr("x", 0)
+    .attr("y", 0)
+    .attr("width", 1)
+    .attr("height", 1)
+    .attr("id", "solid");
+  filter.append("feFlood")
+    .attr("flood-color", "rgb(0, 0, 0, 0.8)");
+  filter.append("feComposite")
+    .attr("in", "SourceGraphic");
+
   // draw radial slice separators
   for (let s = 0; s < numSlices; s++) {
     var angles = slice_angles(s);
@@ -284,6 +298,22 @@ function radar_visualization(config) {
       .style("opacity", 0);
   }
 
+  function highlightLegendItem(d) {
+    var legendItem = document.getElementById("legendItem" + d.id);
+    if (legendItem) {
+      legendItem.setAttribute("filter", "url(#solid)");
+      legendItem.setAttribute("fill", "white");
+    }
+  }
+
+  function unhighlightLegendItem(d) {
+    var legendItem = document.getElementById("legendItem" + d.id);
+    if (legendItem) {
+      legendItem.removeAttribute("filter");
+      legendItem.removeAttribute("fill");
+    }
+  }
+
   // layer for entries
   var rink = radar.append("g")
     .attr("id", "rink");
@@ -294,8 +324,9 @@ function radar_visualization(config) {
     .enter()
       .append("g")
         .attr("class", "blip")
-        .on("mouseover", function(event, d) { showBubble(d); })
-        .on("mouseout", function(event, d) { hideBubble(d); });
+        .on("mouseover", function(event, d) { showBubble(d); highlightLegendItem(d); })
+        .on("mouseout", function(event, d) { hideBubble(d); unhighlightLegendItem(d); })
+        .on("click", function(event, d) { highlightLegendItem(d); });
 
   // configure each blip
   blips.each(function(d) {
@@ -400,9 +431,13 @@ function radar_visualization(config) {
             .append("text")
               .attr("transform", function(d, i) { return translate(startX, cursorY + i * lineHeight); })
               .attr("class", "legend" + s + r)
+              .attr("id", function(d, i) { return "legendItem" + d.id; })
               .text(function(d) { return d.id + ". " + d.label; })
               .style("font-family", config.font_family)
-              .style("font-size", "11px");
+              .style("font-size", "11px")
+              .on("mouseover", function(event, d) { showBubble(d); highlightLegendItem(d); })
+              .on("mouseout", function(event, d) { hideBubble(d); unhighlightLegendItem(d); })
+              .on("click", function(event, d) { highlightLegendItem(d); });
         cursorY += segmented[s][r].length * lineHeight + lineHeight;
       }
 
