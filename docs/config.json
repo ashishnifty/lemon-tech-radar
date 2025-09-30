@@ -4,7 +4,7 @@
     {
       "quadrant": 3,
       "ring": 1,
-      "label": "AWS Athena",
+      "label": "config.json",
       "active": true,
       "moved": 0
     },
